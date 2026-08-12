@@ -1,0 +1,135 @@
+:root{
+  /* Актуальная экранная палитра прототипа по публичному рестайлингу INVITRO 2025/26 */
+  --invitro:#109DB2;
+  --invitro-deep:#087D8D;
+  --invitro-soft:#EAF8FA;
+  --invitro-line:#BFE7EC;
+  --invitro-orange:#FF6A13;
+  --invitro-orange-soft:#FFF1E8;
+
+  /* Переназначаем старые accent-токены без переписывания всей верстки */
+  --pink:var(--invitro);
+  --pink-hover:var(--invitro-deep);
+  --pink-soft:var(--invitro-soft);
+  --pink-line:var(--invitro-line);
+  --orange:#C65000;
+  --orange-soft:var(--invitro-orange-soft);
+}
+
+/* Демо-плашка — вторичный фирменный оранжевый, основной интерфейс остаётся бирюзовым */
+.demo-strip{
+  background:var(--invitro-orange);
+  color:#fff;
+}
+
+.brand-word{
+  color:var(--invitro);
+  font-style:italic;
+  letter-spacing:-.035em;
+}
+
+.role-switch button.active,
+.btn-primary,
+.step-num,
+.event.done:before,
+.progress>div{
+  background:var(--invitro);
+}
+
+.btn-primary:hover{
+  background:var(--invitro-deep);
+}
+
+.nav-btn:hover,
+.nav-btn.active,
+.reset-link:hover,
+.eyebrow,
+.product .tag,
+.order-tab.active{
+  color:var(--invitro);
+}
+
+.nav-btn.active:after,
+.order-tab.active{
+  border-color:var(--invitro);
+}
+
+.nav-btn.active:after{
+  background:var(--invitro);
+}
+
+.hero{
+  background:linear-gradient(135deg,#F5FBFC 0%,#EDF8FA 58%,#F8FBFB 100%);
+}
+
+.hero:after{
+  background:rgba(16,157,178,.13);
+}
+
+.search-input:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+  border-color:var(--invitro);
+  box-shadow:0 0 0 3px rgba(16,157,178,.12);
+}
+
+.quick-chip,
+.service-icon,
+.filter-chip.active,
+.filter-chip:hover,
+.status.info{
+  background:var(--invitro-soft);
+  color:var(--invitro-deep);
+}
+
+.quick-chip:hover{
+  background:#D9F2F5;
+}
+
+.service-card:hover{
+  border-color:#88CBD4;
+}
+
+.btn-outline:hover,
+.filter-chip.active,
+.filter-chip:hover{
+  border-color:var(--invitro);
+  color:var(--invitro-deep);
+}
+
+.notice{
+  background:var(--invitro-soft);
+  border-color:var(--invitro-line);
+  color:#245C64;
+}
+
+.notice.blue{
+  background:var(--invitro-soft);
+  border-color:var(--invitro-line);
+  color:#245C64;
+}
+
+/* Оранжевый — только для предупреждений и вторичных акцентов */
+.notice.warn,
+.status.warn,
+.btn-warn{
+  background:var(--invitro-orange-soft);
+  border-color:#FFD0B3;
+  color:#8A3D00;
+}
+
+/* Спокойнее фон служебных карточек, чтобы брендовый цвет не заливал интерфейс */
+.summary-card,
+.card.soft{
+  background:#F7F9F9;
+}
+
+/* Мобильная активная навигация тоже в актуальном INVITRO Blue */
+.mobile-nav button.active{
+  color:var(--invitro-deep);
+}
+
+@media(max-width:640px){
+  .demo-strip{font-size:11px}
+}
