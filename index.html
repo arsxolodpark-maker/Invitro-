@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>INVITRO Marketplace</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">INVITRO <span>Marketplace</span></div>
+      <div class="role-switch">
+        <button id="role-client" class="active" onclick="setRole('client')">Клиент</button>
+        <button id="role-dkp" onclick="setRole('dkp')">ДКП</button>
+      </div>
+      <nav id="nav"></nav>
+      <button class="reset" onclick="resetDemo()">Сбросить демо</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div id="page-title" class="page-title">Главная</div>
+          <div id="page-subtitle" class="page-subtitle">Клиентский кабинет</div>
+        </div>
+        <div class="top-actions">
+          <span class="demo-badge">ДЕМО</span>
+          <span class="company-badge">АО «СеверПром»</span>
+        </div>
+      </header>
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
