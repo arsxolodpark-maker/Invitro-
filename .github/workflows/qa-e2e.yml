@@ -1,0 +1,49 @@
+name: E2E QA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --save-dev playwright
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 > /tmp/invitro-http.log 2>&1 &
+          echo $! > /tmp/invitro-http.pid
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:8080/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/invitro-http.log
+          exit 1
+
+      - name: Run full browser journeys
+        env:
+          BASE_URL: http://127.0.0.1:8080/
+        run: node qa-e2e.mjs
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-failure-screenshots
+          path: qa-fail-*.png
+          if-no-files-found: ignore
