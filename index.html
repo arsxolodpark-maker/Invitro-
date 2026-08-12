@@ -3,36 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>INVITRO Marketplace</title>
+  <meta name="theme-color" content="#ffffff" />
+  <title>ИНВИТРО — корпоративным клиентам</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">INVITRO <span>Marketplace</span></div>
-      <div class="role-switch">
-        <button id="role-client" class="active" onclick="setRole('client')">Клиент</button>
-        <button id="role-dkp" onclick="setRole('dkp')">ДКП</button>
+  <div class="demo-strip">Демо-прототип. Коммерческие условия и данные организации условные.</div>
+  <header class="site-header">
+    <div class="header-main shell">
+      <button class="brand-lockup" onclick="setRole('client');go('home')" aria-label="ИНВИТРО — на главную">
+        <span class="brand-word">ИНВИТРО</span>
+        <span class="brand-section">Корпоративным клиентам</span>
+      </button>
+      <div class="header-tools">
+        <span class="header-link">Москва</span>
+        <a class="header-phone" href="tel:+78002003630">8 (800) 200-363-0</a>
+        <span class="org-chip" id="org-chip">Для организаций</span>
+        <div class="role-switch" aria-label="Роль прототипа">
+          <button id="role-client" type="button" onclick="setRole('client')">Клиент</button>
+          <button id="role-dkp" type="button" onclick="setRole('dkp')">ДКП</button>
+        </div>
       </div>
-      <nav id="nav"></nav>
-      <button class="reset" onclick="resetDemo()">Сбросить демо</button>
-    </aside>
+    </div>
+    <div class="nav-wrap">
+      <div class="shell nav-row">
+        <nav id="nav" class="primary-nav" aria-label="Основная навигация"></nav>
+        <button class="reset-link" onclick="resetDemo()" type="button">Сбросить демо</button>
+      </div>
+    </div>
+  </header>
 
-    <main class="main">
-      <header class="topbar">
+  <main>
+    <div class="shell page-shell">
+      <div class="page-meta">
         <div>
-          <div id="page-title" class="page-title">Главная</div>
-          <div id="page-subtitle" class="page-subtitle">Клиентский кабинет</div>
+          <div id="page-kicker" class="page-kicker">Корпоративным клиентам</div>
+          <h1 id="page-title" class="page-heading">Главная</h1>
         </div>
-        <div class="top-actions">
-          <span class="demo-badge">ДЕМО</span>
-          <span class="company-badge">АО «СеверПром»</span>
-        </div>
-      </header>
-      <section id="content" class="content"></section>
-    </main>
-  </div>
+        <div id="page-actions" class="page-actions"></div>
+      </div>
+      <section id="content"></section>
+    </div>
+  </main>
 
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Мобильная навигация"></nav>
   <script src="app.js"></script>
 </body>
 </html>
