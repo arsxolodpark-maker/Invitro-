@@ -1,5 +1,5 @@
 // Guided end-to-end journey layer for the demo prototype.
-// It does not replace business logic; it makes the next step explicit on every key screen.
+// The guide must never offer a CTA that simply re-opens the screen the user is already on.
 
 const FLOW_STEPS = [
   ['catalog','Каталог'],
@@ -40,6 +40,7 @@ function nextFlowInfo(){
   if(state.closing==='closed') return {text:'Сценарий завершён. Заказ закрыт документально и финансово.',actions:flowAction('Начать сценарий заново','resetDemo()','outline')};
 
   if(!state.product){
+    if(state.role==='client' && state.clientPage==='catalog') return {text:'Выберите услугу или программу в каталоге ниже.',actions:''};
     return {text:'Выберите услугу или программу — после этого откроются параметры заказа.',actions:flowAction('Перейти в каталог',"switchToClient('catalog',null)")};
   }
 
@@ -48,51 +49,81 @@ function nextFlowInfo(){
   }
 
   if(!state.org){
+    if(state.role==='client' && state.clientPage==='organization'){
+      if(!state.inn) return {text:'Начните с ИНН организации.',actions:flowAction('Подставить демо ИНН','demoInn()','outline')};
+      return {text:'ИНН указан. Подтяните реквизиты организации.',actions:flowAction('Подтянуть реквизиты','loadOrg()')};
+    }
     return {text:'Введите ИНН и подтяните реквизиты организации.',actions:flowAction('Оформить организацию',"switchToClient('organization',null)")};
   }
+
   if(!state.docs){
+    if(state.role==='client' && state.clientPage==='organization') return {text:'Реквизиты готовы. Теперь загрузите комплект документов.',actions:flowAction(state.verification==='fix'?'Загрузить исправленный комплект':'Загрузить демо комплект','uploadDocs()','secondary')};
     return {text:'Загрузите комплект документов организации.',actions:flowAction('Перейти к документам',"switchToClient('organization',null)")};
   }
+
   if(state.verification==='none'){
-    return {text:'Реквизиты и документы готовы. Следующий шаг — отправить заявку на проверку ДКП.',actions:flowAction('Отправить на проверку',"switchToClient('organization',null)")};
+    if(state.role==='client' && state.clientPage==='organization') return {text:'Реквизиты и документы готовы. Отправьте заявку на проверку ДКП.',actions:flowAction('Отправить на проверку','sendVerify()')};
+    return {text:'Реквизиты и документы готовы. Следующий шаг — отправить заявку на проверку ДКП.',actions:flowAction('К проверке организации',"switchToClient('organization',null)")};
   }
+
   if(state.verification==='fix'){
-    return {text:'ДКП вернул документы на доработку. Исправьте комплект и отправьте повторно.',actions:flowAction('Исправить документы',"switchToClient('organization',null)")};
+    return {text:'ДКП вернул документы на доработку. Загрузите исправленный комплект и отправьте повторно.',actions:flowAction('Исправить документы',"switchToClient('organization',null)")};
   }
+
   if(state.verification==='pending'){
     if(state.role==='client') return {text:'Заявка ждёт проверки ДКП. В демо можно сразу перейти в рабочее место менеджера.',actions:flowAction('Далее: проверка ДКП',"switchToDkp('case')")};
+    if(state.dkpPage==='case') return {text:'Проверьте организацию и документы и примите решение.',actions:flowAction('Подтвердить организацию','verify(true)','ok')+flowAction('Вернуть на доработку','verify(false)','warn')};
     return {text:'Проверьте организацию и документы, затем подтвердите или верните заявку.',actions:flowAction('Открыть карточку',"go('case')")};
   }
+
   if(state.verification==='verified' && state.quote.status==='none'){
     if(state.role==='client') return {text:'Организация проверена. Следующий шаг — ДКП формирует коммерческое предложение.',actions:flowAction('Далее: сформировать КП',"switchToDkp('case')")};
-    return {text:'Организация подтверждена. Теперь сформируйте коммерческое предложение.',actions:flowAction('Открыть блок КП',"go('case')")};
+    if(state.dkpPage==='case') return {text:'Организация подтверждена. Сформируйте и отправьте коммерческое предложение.',actions:flowAction('Сформировать и отправить демо КП','createQuote()')};
+    return {text:'Организация подтверждена. Теперь сформируйте коммерческое предложение.',actions:flowAction('К карточке заказа',"go('case')")};
   }
+
   if(state.quote.status==='change'){
     if(state.role==='client') return {text:'Запрошена корректировка КП. Следующее действие у ДКП — создать новую версию.',actions:flowAction('Далее: новая версия КП',"switchToDkp('case')")};
-    return {text:'Клиент запросил изменения. Создайте новую версию коммерческого предложения.',actions:flowAction('Корректировать КП',"go('case')")};
+    if(state.dkpPage==='case') return {text:`Клиент запросил изменения в КП v${state.quote.version}. Создайте новую версию.`,actions:flowAction(`Создать КП v${state.quote.version+1}`,'createQuote()')};
+    return {text:'Клиент запросил изменения. Откройте карточку заказа для новой версии КП.',actions:flowAction('К карточке заказа',"go('case')")};
   }
+
   if(state.quote.status==='sent'){
     if(state.role==='dkp') return {text:`КП v${state.quote.version} отправлено. Следующее действие у клиента — принять или запросить изменение.`,actions:flowAction('Далее: клиент смотрит КП',"switchToClient('order','quote')")};
-    return {text:`КП v${state.quote.version} готово. Ознакомьтесь с ним и примите или запросите изменение.`,actions:flowAction('Открыть КП',"setOrderTab('quote')")};
+    if(state.clientPage==='order' && state.orderTab==='quote') return {text:`КП v${state.quote.version} открыто. Примите его или запросите изменение.`,actions:flowAction('Принять КП','acceptQuote()','ok')+flowAction('Запросить изменение','requestChange()','outline')};
+    return {text:`КП v${state.quote.version} готово. Ознакомьтесь с ним.`,actions:flowAction('Открыть КП',"switchToClient('order','quote')")};
   }
+
   if(state.quote.status==='accepted' && state.contract!=='signed'){
-    return {text:'КП принято. Следующий шаг — подтвердить договор, после чего будет выставлен счёт.',actions:state.role==='client'?flowAction('Далее: договор и счёт',"setOrderTab('quote')"):flowAction('Далее: клиент подтверждает договор',"switchToClient('order','quote')")};
+    if(state.role==='client' && state.clientPage==='order' && state.orderTab==='quote') return {text:'КП принято. Подтвердите договор — после этого будет выставлен счёт.',actions:flowAction('Подтвердить договор','signContract()')};
+    return {text:'КП принято. Следующий шаг — договор и счёт.',actions:flowAction('Далее: договор и счёт',"switchToClient('order','quote')")};
   }
+
   if(state.invoice==='issued' && state.payment!=='paid'){
-    return {text:'Счёт выставлен. В демо следующий шаг — отметить получение оплаты.',actions:state.role==='client'?flowAction('Перейти к оплате',"setOrderTab('quote')"):flowAction('Далее: оплата клиента',"switchToClient('order','quote')")};
+    if(state.role==='client' && state.clientPage==='order' && state.orderTab==='quote') return {text:'Счёт выставлен. В демо подтвердите получение оплаты.',actions:flowAction('Отметить демо-оплату','pay()')};
+    return {text:'Счёт выставлен. Следующий шаг — оплата.',actions:flowAction('Далее: оплата',"switchToClient('order','quote')")};
   }
+
   if(state.payment==='paid' && state.roster!=='ready'){
-    return {text:'Оплата подтверждена. Теперь загрузите список сотрудников для исполнения заказа.',actions:flowAction('Далее: сотрудники',"switchToClient('order','employees')")};
+    if(state.role==='client' && state.clientPage==='order' && state.orderTab==='employees') return {text:'Оплата подтверждена. Загрузите список сотрудников для исполнения заказа.',actions:flowAction('Загрузить демо список','roster()')};
+    return {text:'Оплата подтверждена. Теперь нужен список сотрудников.',actions:flowAction('Далее: сотрудники',"switchToClient('order','employees')")};
   }
+
   if(state.roster==='ready' && state.execution.status==='none'){
+    if(state.role==='client' && state.clientPage==='order' && state.orderTab==='execution') return {text:'Список сотрудников принят. Передайте заказ в исполнение.',actions:flowAction('Передать в исполнение','startExec()')};
     return {text:'Список сотрудников принят. Заказ готов к передаче в исполнение.',actions:flowAction('Далее: исполнение',"switchToClient('order','execution')")};
   }
+
   if(state.execution.status==='active'){
-    return {text:`Заказ исполняется — ${state.execution.progress}%. Обновляйте агрегированный статус до завершения.`,actions:flowAction('Открыть исполнение',state.role==='client'?"setOrderTab('execution')":"go('execution')")};
+    if(state.role==='client' && state.clientPage==='order' && state.orderTab==='execution') return {text:`Заказ исполняется — ${state.execution.progress}%. Обновите агрегированный статус.`,actions:flowAction('Обновить статус','advance()','secondary')};
+    return {text:`Заказ исполняется — ${state.execution.progress}%.`,actions:flowAction('Открыть исполнение',"switchToClient('order','execution')")};
   }
+
   if(state.execution.status==='done' && state.closing==='ready'){
-    return {text:'Исполнение завершено. Последний шаг — закрывающие документы.',actions:flowAction('Далее: закрыть заказ',"switchToClient('order','execution')")};
+    if(state.role==='client' && state.clientPage==='order' && state.orderTab==='execution') return {text:'Исполнение завершено. Последний шаг — закрывающие документы.',actions:flowAction('Закрыть заказ','closeOrder()','ok')};
+    return {text:'Исполнение завершено. Последний шаг — закрывающие документы.',actions:flowAction('Далее: закрытие',"switchToClient('order','execution')")};
   }
+
   return {text:'Продолжите текущий этап заказа.',actions:''};
 }
 
@@ -111,6 +142,6 @@ const baseRender = render;
 render = function(){
   baseRender();
   const host=document.getElementById('content');
-  if(host && state.clientPage!=='home' || (host && state.role==='dkp')) host.insertAdjacentHTML('afterbegin',flowGuide());
+  if((host && state.clientPage!=='home') || (host && state.role==='dkp')) host.insertAdjacentHTML('afterbegin',flowGuide());
 };
 render();
