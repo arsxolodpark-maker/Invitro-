@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install Playwright
         run: |
@@ -35,15 +35,17 @@ jobs:
           cat /tmp/invitro-http.log
           exit 1
 
-      - name: Run full browser journeys
+      - name: Run desktop mobile and full browser journeys
         env:
           BASE_URL: http://127.0.0.1:8080/
         run: node qa-e2e.mjs
 
-      - name: Upload failure screenshots
-        if: failure()
+      - name: Upload QA screenshots
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa-failure-screenshots
-          path: qa-fail-*.png
+          name: qa-screenshots
+          path: |
+            qa-success-*.png
+            qa-fail-*.png
           if-no-files-found: ignore
