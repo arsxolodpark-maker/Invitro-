@@ -4,14 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#109DB2" />
-  <title>INVITRO — корпоративным клиентам · v0.5</title>
+  <title>INVITRO — корпоративным клиентам · v0.6</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="invitro-2026.css" />
   <link rel="stylesheet" href="flow-guide.css" />
   <link rel="stylesheet" href="v05.css" />
+  <link rel="stylesheet" href="v06.css" />
 </head>
 <body>
-  <div class="demo-strip">Демо-прототип. Коммерческие условия и данные организации условные.</div>
+  <div class="demo-strip">Демо-прототип. Корпоративные условия, состав отдельных программ и данные организации требуют подтверждения.</div>
   <header class="site-header">
     <div class="header-main shell">
       <button class="brand-lockup" onclick="setRole('client');go('home')" aria-label="INVITRO — на главную">
@@ -35,23 +36,10 @@
       </div>
     </div>
   </header>
-
-  <main>
-    <div class="shell page-shell">
-      <div class="page-meta">
-        <div>
-          <div id="page-kicker" class="page-kicker">Корпоративным клиентам</div>
-          <h1 id="page-title" class="page-heading">Главная</h1>
-        </div>
-        <div id="page-actions" class="page-actions"></div>
-      </div>
-      <section id="content"></section>
-    </div>
-  </main>
-
+  <main><div class="shell page-shell"><div class="page-meta"><div><div id="page-kicker" class="page-kicker">Для организаций</div><h1 id="page-title" class="page-heading">Решения для организаций</h1></div><div id="page-actions" class="page-actions"></div></div><section id="content"></section></div></main>
   <nav id="mobile-nav" class="mobile-nav" aria-label="Мобильная навигация"></nav>
   <script src="app.js"></script>
-  <script src="v05-ui.js"></script>
+  <script src="v06-ui.js"></script>
   <script src="flow-guide.js"></script>
   <script src="flow-fixes.js"></script>
 </body>
