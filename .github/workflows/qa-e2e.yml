@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -36,6 +39,8 @@ jobs:
           exit 1
 
       - name: Run desktop mobile and full browser journeys
+        id: e2e
+        continue-on-error: true
         env:
           BASE_URL: http://127.0.0.1:8080/
         run: node qa-e2e.mjs
@@ -49,3 +54,36 @@ jobs:
             qa-success-*.png
             qa-fail-*.png
           if-no-files-found: ignore
+
+      - name: Publish machine-readable QA result
+        if: always()
+        env:
+          E2E_OUTCOME: ${{ steps.e2e.outcome }}
+        run: |
+          mkdir -p qa-results/latest
+          rm -f qa-results/latest/*.png qa-results/latest/status.json
+          cp qa-success-*.png qa-results/latest/ 2>/dev/null || true
+          cp qa-fail-*.png qa-results/latest/ 2>/dev/null || true
+          python3 - <<'PY'
+          import json, os, glob, datetime
+          data = {
+            "source_commit": os.environ["GITHUB_SHA"],
+            "run_id": int(os.environ["GITHUB_RUN_ID"]),
+            "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+            "outcome": os.environ.get("E2E_OUTCOME", "unknown"),
+            "generated_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "screenshots": [os.path.basename(x) for x in sorted(glob.glob("qa-results/latest/*.png"))]
+          }
+          with open("qa-results/latest/status.json","w",encoding="utf-8") as f:
+            json.dump(data,f,ensure_ascii=False,indent=2)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B qa-results
+          git add -f qa-results/latest
+          git commit -m "QA result for $GITHUB_SHA" || true
+          git push --force origin qa-results
+
+      - name: Fail workflow when E2E failed
+        if: steps.e2e.outcome != 'success'
+        run: exit 1
