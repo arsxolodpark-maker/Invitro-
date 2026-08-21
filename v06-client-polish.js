@@ -10,6 +10,7 @@ const descriptions={
   hazard:'Лабораторные исследования для сотрудников с учётом условий труда и параметров предприятия.'
 };
 for(const [id,desc] of Object.entries(descriptions)){const p=v06Products.find(x=>x.id===id);if(p)p.desc=desc;}
+if(Array.isArray(FLOW_STEPS)&&FLOW_STEPS[3])FLOW_STEPS[3][1]='Проверка';
 
 routeCards = function(){
   return `<div class="v06-route-grid">${v06Routes.map(x=>`<article class="v06-route ${x.marketplace?'featured':''}"><div class="coop-top"><span class="tag">${x.badge}</span></div><h3>${x.title}</h3><p>${x.desc}</p>${x.marketplace?btn('Перейти в каталог','chooseSmallProcurement()'):`<a class="btn btn-outline" href="${x.url}" target="_blank" rel="noopener">Подробнее</a>`}</article>`).join('')}</div>`;
@@ -31,26 +32,20 @@ catalogTabs = function(){
 corporatePriceNote = function(){
   return `<div class="price-disclaimer"><b>Корпоративные условия рассчитываются индивидуально.</b> Итоговая стоимость зависит от количества сотрудников, состава услуг и региона. Цена в каталоге используется как базовый ориентир.</div>`;
 };
-
 priceBlock = function(p){
   return p.price?`<div class="v06-price"><b>от ${money(p.price)}</b><small>Базовая стоимость</small></div>`:`<div class="v06-price"><b>По запросу</b><small>Стоимость рассчитывается индивидуально</small></div>`;
 };
 
 const originalCatalogPolished = catalog;
 catalog = function(){
-  const html = originalCatalogPolished();
-  return html
-    .replace('Для прототипа используем структуру и примеры из B2C-каталога INVITRO. В рабочей версии каталог должен синхронизироваться полностью, без ручного ведения.','Подберите исследования и программы для сотрудников организации. Корпоративные условия рассчитываются с учётом объёма заказа и региона.')
-    .replaceAll('ДЕМО','')
-    .replaceAll('демо ','')
-    .replaceAll('Демо ','');
+  return originalCatalogPolished()
+    .replace('Для прототипа используем структуру и примеры из B2C-каталога INVITRO. В рабочей версии каталог должен синхронизироваться полностью, без ручного ведения.','Подберите исследования и программы для сотрудников организации. Корпоративные условия рассчитываются с учётом объёма заказа и региона.');
 };
 
 const originalProductDetailPolished = productDetailView;
 productDetailView = function(p){
   return originalProductDetailPolished(p)
-    .replace('В рабочей версии здесь подгружается полный состав программы из подтверждённой карточки INVITRO. Для корпоративных программ без подтверждённого состава данные в прототипе не выдумываем.','Подробный состав программы и условия её применения будут указаны в карточке программы.')
-    .replaceAll('ДЕМО','');
+    .replace('В рабочей версии здесь подгружается полный состав программы из подтверждённой карточки INVITRO. Для корпоративных программ без подтверждённого состава данные в прототипе не выдумываем.','Подробный состав программы и условия её применения будут указаны в карточке программы.');
 };
 
 const originalOrganizationPolished = organization;
@@ -62,8 +57,8 @@ organization = function(){
     .replace('Загрузить демо PDF','Загрузить PDF')
     .replace('Заявка передана в единый фронт ДКП.','Заявка отправлена корпоративному менеджеру.')
     .replace('Дальше менеджер проверяет организацию и готовит коммерческие условия.','Менеджер проверит данные организации и подготовит коммерческие условия.')
-    .replace('Открыть единый фронт ДКП','Перейти к обработке заявки')
-    .replaceAll('ДЕМО','');
+    .replace('ДКП вернул документы на доработку.','Документы возвращены на уточнение.')
+    .replace('Открыть единый фронт ДКП','Перейти к обработке заявки');
 };
 
 const originalNextFlowInfoPolished = nextFlowInfo;
@@ -93,4 +88,19 @@ titleData = function(){
   return d;
 };
 
+function scrubClientCopy(){
+  if(state.role!=='client')return;
+  const root=document.querySelector('main');
+  if(!root)return;
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  for(const n of nodes){
+    n.nodeValue=n.nodeValue
+      .replace(/демо[- ]?/gi,'')
+      .replace(/ДКП/g,'корпоративный менеджер')
+      .replace(/единый фронт корпоративный менеджер/g,'корпоративный менеджер');
+  }
+}
+const renderBeforeClientScrub=render;
+render=function(){renderBeforeClientScrub();scrubClientCopy();};
 render();
