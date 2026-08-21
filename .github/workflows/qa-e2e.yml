@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: invitro-marketplace-e2e-main
+  cancel-in-progress: true
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
