@@ -1,24 +1,45 @@
 # INVITRO Marketplace — Technical Platform, Deployment & Security v0.1
 
 **Дата:** 20.08.2026  
+**Обновлено:** 14.09.2026  
 **Статус:** первичный технический слой; FACT / DECISION / TARGET / TBD разделены.
 
 ## Короткий вывод
 
-Добавить инфраструктуру и безопасность сейчас, но не строить production-контур преждевременно. Для текущего статического прототипа Docker не обязателен. Для будущей разработки Docker принимается как базовый способ упаковки сервисов; Kubernetes и конкретный runtime остаются TBD до разговора с инфраструктурой INVITRO.
+Инфраструктуру и безопасность фиксируем до production-разработки, но не усложняем текущий статический prototype преждевременно. GitHub становится source of truth для кода, версий, документации и CI/QA. Cloudflare Pages — целевой demo/production hosting-контур для статического front-end. Docker добавляется при появлении backend/API/worker; Kubernetes и конкретный production runtime остаются TBD до разговора с инфраструктурой INVITRO.
 
 ## Current state — FACT
 
-- Публичный GitHub-репозиторий и GitHub Pages.
+- GitHub-репозиторий — source of truth.
 - Статический HTML/CSS/JS, без backend и БД.
-- GitHub Actions deployment.
-- Playwright E2E + desktop/mobile smoke.
+- GitHub Actions: Playwright E2E + desktop/mobile smoke + Release Gate.
+- QA гоняется на том же packaged artifact `dist`, который предназначен для Cloudflare.
 - Только demo/synthetic data.
 - Docker в runtime текущего прототипа не используется.
+- Ветка `release` предназначена для production deployment в Cloudflare и продвигается только после успешного E2E на `main`.
 
-> Публичный GitHub/Pages нельзя использовать для production-хранения реальных документов, списков сотрудников, персональных или медицинских данных.
+> Публичный GitHub/Cloudflare Pages нельзя использовать для production-хранения реальных документов, списков сотрудников, персональных или медицинских данных.
 
-## Target architecture
+## Delivery architecture — DECISION
+
+`локальная / AI-разработка → GitHub main → CI/QA → Release Gate → GitHub release → Cloudflare Pages → stable URL`
+
+Роли:
+
+- **GitHub** — source of truth, versioning, docs, CI/QA.
+- **GitHub Actions** — Release Gate.
+- **Cloudflare Pages** — hosting, CDN, preview/production URL.
+- **release branch** — production branch Cloudflare.
+- **GitHub Pages** — не целевой hosting; допускается временный fallback на период миграции.
+
+Cloudflare Pages settings:
+
+- Production branch: `release`
+- Build command: `bash scripts/build-cloudflare.sh dist`
+- Build output directory: `dist`
+- Root directory: `/`
+
+## Target application architecture
 
 Browser → Web frontend → API/BFF → Integration Gateway → Unified DKP / Bitrix (TBD) / Catalog / Document storage / Billing-EDO / Existing results contour.
 
@@ -35,6 +56,12 @@ Browser → Web frontend → API/BFF → Integration Gateway → Unified DKP / B
 
 DEV → TEST → STAGE → PROD. Реальные данные допускаются только после Security Gate и по утверждённым правилам.
 
+Для статического prototype до появления корпоративного runtime допускается:
+
+- `main` — integration/source branch;
+- branch/PR previews — development validation;
+- `release` — только green build для Cloudflare demo/production.
+
 ## Security baseline
 
 - SSO/IAM/RBAC/least privilege.
@@ -45,6 +72,7 @@ DEV → TEST → STAGE → PROD. Реальные данные допускаю�
 - Результаты по умолчанию остаются в существующем медицинском контуре.
 - SAST/dependency/secret scan, DAST/pentest перед production по корпоративным правилам.
 - Audit trail критических действий.
+- Для публичного demo: security headers, запрет индексации, отсутствие real data/secrets.
 
 ## Infrastructure & Security Gate
 
@@ -59,6 +87,19 @@ DEV → TEST → STAGE → PROD. Реальные данные допускаю�
 9. Logging/monitoring/audit/alerting.
 10. Security + infrastructure + product production approval.
 
+## Release Gate для публичного demo
+
+1. Требования синхронизированы.
+2. Packaged artifact собран в `dist`.
+3. E2E PASS.
+4. Desktop visual QA PASS.
+5. Mobile visual QA PASS.
+6. Console/JS errors отсутствуют.
+7. `main` продвинут в `release` только после PASS.
+8. Cloudflare deployment завершён.
+9. Smoke-check Cloudflare URL PASS.
+10. Только после этого статус `DEMO READY` и ссылка внешнему пользователю.
+
 ## Главные TBD
 
 - Production runtime: Kubernetes/OpenShift/VM/PaaS?
@@ -70,7 +111,14 @@ DEV → TEST → STAGE → PROD. Реальные данные допускаю�
 - Catalog/price source and update API?
 - Contract/invoice/act/EDO source?
 - SLA/RPO/RTO?
+- Final custom domain / DNS owner for public demo and production.
 
 ## Next step
 
-Провести implementation-discovery с инфраструктурой/ИБ INVITRO и после этого выпустить **NFR / DevOps / Security Requirements v1.0**. До этого текущий v0.6 остаётся простым demo-contour без real data.
+1. Подключить GitHub repository к Cloudflare Pages.
+2. Выбрать production branch `release`.
+3. Указать build command/output directory.
+4. Получить Cloudflare preview/production URL.
+5. Пройти Release Gate уже на Cloudflare.
+6. После этого GitHub Pages перестаёт быть рабочей публичной ссылкой и остаётся только fallback до окончательного отключения.
+7. Перед production с real data провести implementation-discovery с инфраструктурой/ИБ INVITRO и выпустить **NFR / DevOps / Security Requirements v1.0**.
