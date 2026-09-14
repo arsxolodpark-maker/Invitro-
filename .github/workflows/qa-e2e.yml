@@ -25,13 +25,17 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Package Cloudflare artifact
+        run: bash scripts/build-cloudflare.sh dist
+
       - name: Install Playwright
         run: |
           npm init -y
           npm install --save-dev playwright
           npx playwright install --with-deps chromium
 
-      - name: Start static server
+      - name: Start packaged static server
+        working-directory: dist
         run: |
           python3 -m http.server 8080 > /tmp/invitro-http.log 2>&1 &
           echo $! > /tmp/invitro-http.pid
@@ -75,6 +79,7 @@ jobs:
             "run_id": int(os.environ["GITHUB_RUN_ID"]),
             "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
             "outcome": os.environ.get("E2E_OUTCOME", "unknown"),
+            "artifact": "dist",
             "generated_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "screenshots": [os.path.basename(x) for x in sorted(glob.glob("qa-results/latest/*.png"))]
           }
@@ -87,6 +92,10 @@ jobs:
           git add -f qa-results/latest
           git commit -m "QA result for $GITHUB_SHA" || true
           git push --force origin qa-results
+
+      - name: Promote tested commit to release
+        if: steps.e2e.outcome == 'success'
+        run: git push --force origin "$GITHUB_SHA:refs/heads/release"
 
       - name: Fail workflow when E2E failed
         if: steps.e2e.outcome != 'success'
