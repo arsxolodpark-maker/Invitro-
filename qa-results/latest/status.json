@@ -1,0 +1,13 @@
+{
+  "source_commit": "99764dcb5de1bd54d67e5b84f98832cc59b9d7b4",
+  "run_id": 34853254349,
+  "run_attempt": 1,
+  "outcome": "success",
+  "artifact": "dist",
+  "generated_at_utc": "2026-09-14T14:05:47.788950+00:00",
+  "screenshots": [
+    "qa-success-desktop-final.png",
+    "qa-success-desktop-home.png",
+    "qa-success-mobile-catalog.png"
+  ]
+}
